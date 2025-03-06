@@ -27,7 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-or-later
         </field>
     </record>
 
-    <record model="ir.actions.act_window" id="action_account_invoice_confirm">
+    <record id="action_view_validate_subscription_request" model="ir.actions.act_window">
         <field name="name">Validate subscription request</field>
         <field name="res_model">validate.subscription.request</field>
         <field name="binding_model_id" ref="model_subscription_request" />

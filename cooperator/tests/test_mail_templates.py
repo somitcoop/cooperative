@@ -3,19 +3,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from freezegun import freeze_time
+import requests
 
 from odoo import fields
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import BaseCommon
 
 from .cooperator_test_mixin import CooperatorTestMixin
 
 
-class TestMailTemplates(TransactionCase, CooperatorTestMixin):
+class TestMailTemplates(BaseCommon, CooperatorTestMixin):
     @classmethod
     def setUpClass(cls):
+        cls._super_send = requests.Session.send
         super().setUpClass()
         cls.set_up_cooperator_test_data()
         cls.default_template = cls.env.ref("cooperator.email_template_confirmation")
+
+    @classmethod
+    def _request_handler(cls, s, r, /, **kw):
+        """Don't block external requests."""
+        return cls._super_send(s, r, **kw)
 
     def test_new_company_gets_default_template(self):
         """

@@ -3,14 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 from odoo.exceptions import AccessError
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import BaseCommon
+import requests
 
 from .cooperator_test_mixin import CooperatorTestMixin
 
 
-class TestCooperatorSecurity(TransactionCase, CooperatorTestMixin):
+class TestCooperatorSecurity(BaseCommon, CooperatorTestMixin):
     @classmethod
     def setUpClass(cls):
+        cls._super_send = requests.Session.send
         super().setUpClass()
         cls.set_up_cooperator_test_data()
         cls.company_2 = cls.env["res.company"].create({"name": "Test Company"})
@@ -25,6 +27,11 @@ class TestCooperatorSecurity(TransactionCase, CooperatorTestMixin):
         cls.env.ref("cooperator.cooperator_group_manager").write(
             {"users": [(4, cls.user_2.id)]}
         )
+
+    @classmethod
+    def _request_handler(cls, s, r, /, **kw):
+        """Don't block external requests."""
+        return cls._super_send(s, r, **kw)
 
     def test_user_without_access(self):
         """A user that doesn't belong to the group cannot read cooperator

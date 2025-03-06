@@ -6,17 +6,19 @@
 from datetime import date, datetime, timedelta
 
 from freezegun import freeze_time
+import requests
 
 from odoo import fields
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests.common import TransactionCase, users
+from odoo.tests.common import BaseCommon, users
 
 from .cooperator_test_mixin import CooperatorTestMixin
 
 
-class CooperatorCase(TransactionCase, CooperatorTestMixin):
+class CooperatorCase(BaseCommon, CooperatorTestMixin):
     @classmethod
     def setUpClass(cls):
+        cls._super_send = requests.Session.send
         super().setUpClass()
         cls.set_up_cooperator_test_data()
         cls.share_line = cls.env["share.line"].create(
@@ -29,6 +31,11 @@ class CooperatorCase(TransactionCase, CooperatorTestMixin):
             }
         )
         cls.company_2 = cls.create_company("company 2")
+
+    @classmethod
+    def _request_handler(cls, s, r, /, **kw):
+        """Don't block external requests."""
+        return cls._super_send(s, r, **kw)
 
     @users("user-cooperator")
     def test_put_on_waiting_list(self):
